@@ -11,4 +11,7 @@ public interface CustomerService {
   ResponseCustomerDto getCustomerByAlias(String alias);
 
   String updateCustomer(RequestCustomerDto requestCustomerDto);
+
+  String deleteCustomer(String alias);
+
 }

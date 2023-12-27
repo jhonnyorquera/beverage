@@ -23,7 +23,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     ModelMapper modelMapper = new ModelMapper();
     Customer customerSaved= modelMapper.map(requestCustomerDto, Customer.class);
-
+    customerSaved.setStatus(Boolean.TRUE);
     return modelMapper.map(customerRepository.save(customerSaved), ResponseCustomerDto.class);
   }
 
@@ -41,8 +41,16 @@ public class CustomerServiceImpl implements CustomerService {
      return "Customer Updated!";
   }
 
+  @Override
+  public String deleteCustomer(String alias) {
+    Customer obj = getCustomerJust(alias);
+    obj.setStatus(Boolean.FALSE);
+    customerRepository.save(obj);
+    return "Customer deleted";
+  }
+
   private Customer getCustomerJust(String alias){
-    List<Customer> customer=customerRepository.findByalias(alias);
+    List<Customer> customer=customerRepository.findByaliasAndStatus(alias, Boolean.TRUE);
     if (customer.size() < 1) {
       throw new RuntimeException("Customer not exist");
     }
