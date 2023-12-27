@@ -2,14 +2,11 @@ package beverage.company.beverages.service.impl;
 
 
 import beverage.company.beverages.data.Customer;
-import beverage.company.beverages.data.Discount;
-import beverage.company.beverages.dto.DiscountDto;
 import beverage.company.beverages.dto.RequestCustomerDto;
 import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.repository.CustomerRepository;
 import beverage.company.beverages.service.CustomerService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -29,4 +26,28 @@ public class CustomerServiceImpl implements CustomerService {
 
     return modelMapper.map(customerRepository.save(customerSaved), ResponseCustomerDto.class);
   }
+
+  @Override
+  public ResponseCustomerDto getCustomerByAlias(String alias) {
+    ModelMapper modelMapper = new ModelMapper();
+    return  modelMapper.map(getCustomerJust(alias), ResponseCustomerDto.class);
+  }
+
+  @Override
+  public String updateCustomer(RequestCustomerDto requestCustomerDto) {
+    Customer customer= getCustomerJust(requestCustomerDto.getAlias());
+    customer.setBasicDiscountPercent(requestCustomerDto.getBasicDiscountPercent());
+     customerRepository.save(customer);
+     return "Customer Updated!";
+  }
+
+  private Customer getCustomerJust(String alias){
+    List<Customer> customer=customerRepository.findByalias(alias);
+    if (customer.size() < 1) {
+      throw new RuntimeException("Customer not exist");
+    }
+    return customer.get(0);
+  }
+
+
 }
