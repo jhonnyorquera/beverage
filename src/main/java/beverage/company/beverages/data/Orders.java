@@ -8,31 +8,29 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.Data;
 
 @Entity
 @Data
-public class Customer {
+public class Orders {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
-  private String alias;
-  private double basicDiscountPercent;
 
-  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @JoinColumn(name = "customer_id")
-  private List<Discount> discountList;
-
-  private Boolean status;
-/*
-  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @JoinColumn(name = "customer_id")
-  private List<Order> orderList;
+  private double subtotal;
+  private double discount;
+  private double total;
+  /*
+  @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinColumn(name="customer_id", referencedColumnName = "id")
+  private Customer customer;
 */
 
+  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinColumn(name = "order_id")
+  private List<OrderDetail> details;
 
 
 }
