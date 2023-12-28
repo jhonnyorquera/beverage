@@ -55,7 +55,7 @@ public class ProductServiceImpl  implements ProductService {
   private Product getProductJust(String name){
     List<Product> customer=repository.findByNameAndStatus(name, Boolean.TRUE);
     if (customer.size() < 1) {
-      throw new RuntimeException("product not exist");
+      throw new RuntimeException("product: "+name+", not exist");
     }
     return customer.get(0);
   }
