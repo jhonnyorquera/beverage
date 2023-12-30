@@ -27,11 +27,11 @@ public class Customer {
   private List<Discount> discountList;
 
   private Boolean status;
-/*
+
   @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @JoinColumn(name = "customer_id")
-  private List<Order> orderList;
-*/
+  private List<Orders> orderList;
+
 
 
 

@@ -1,6 +1,7 @@
 package beverage.company.beverages.service.impl;
 
 
+import beverage.company.beverages.dto.DiscountDto;
 import beverage.company.beverages.dto.OrderDetailDto;
 import beverage.company.beverages.dto.OrderDto;
 import beverage.company.beverages.dto.RequestOrderDto;
@@ -31,41 +32,82 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public OrderDto saverOrder(RequestOrderDto dto) {
 
-    Map<String, String> orderInput = getRequest(dto.getInput());
+    Map<String, String> orderInput = getQuantityByProduct(dto.getInput());
     ResponseCustomerDto customer = customerService.getCustomerByAlias(orderInput.get("Customer"));
-    Map<String, ResponseProductDto> products= getProducts();
-    List<OrderDetailDto> orderDetailDtos= getOrderDetail(products, orderInput);
-
-    return null;
-  }
-
-  private List<OrderDetailDto> getOrderDetail(Map<String, ResponseProductDto> mapDto, Map<String, String> orderInput){
-    List<OrderDetailDto> orderDetailDtoList = new ArrayList<>();
-       mapDto.entrySet().stream().forEach(var-> {
-         orderDetailDtoList.add(getOrderDetail(orderInput.get(var.getKey()), var.getValue()));
-       });
-
-    return  orderDetailDtoList;
+    Map<String, ResponseProductDto> products = getProducts();
+    List<OrderDetailDto> orderDetailDtos = getOrderDetail(products, orderInput);
+    OrderDto orderDto = new OrderDto();
+    orderDto.setCustomer(customer);
+    orderDto.setDetails(orderDetailDtos);
+    getDiscountsOverall(orderDto, customer);
+    return orderDto;
   }
 
 
-  private OrderDetailDto getOrderDetail(String quantity,ResponseProductDto productDto ) {
-    Integer quantityDet =  Integer.parseInt(quantity) ;
-    if (quantityDet > 0) {
-      OrderDetailDto orderDetailDto = new OrderDetailDto();
-      orderDetailDto.setQuantity(quantityDet);
-      Double priceUnit = calcUnitCost(productDto);
-      orderDetailDto.setBaseUnitPrice(priceUnit);
-      orderDetailDto.setLineTotal(quantityDet * priceUnit);
-      return orderDetailDto;
-    } else {
-      return new OrderDetailDto();
+  private void getDiscountsOverall(OrderDto orderDto, ResponseCustomerDto customerDto) {
+    double subtotal = orderDto.getDetails().stream().map(x -> x.getLineTotal()).reduce(0.0, Double::sum);
+    orderDto.setSubtotal(subtotal);
+    double basicDiscount = (customerDto.getBasicDiscountPercent()) / 100;
+    orderDto.setDiscount(0.0);
+
+
+    customerDto.getDiscountList().stream().forEach(x-> {
+      getDiscountByCriteriaField(x, subtotal, orderDto);
+
+    });
+
+    Double totalDiscount= basicDiscount+orderDto.getDiscount();
+    orderDto.setDiscount(subtotal*totalDiscount);
+    if(orderDto.getDiscount()>0.0)
+    orderDto.setTotal(orderDto.getSubtotal()-orderDto.getDiscount());
+
+
+  }
+
+  private void getDiscountByCriteriaField(DiscountDto discountDto, Double subtotal, OrderDto orderDto) {
+
+    char criteria = discountDto.getCondition().charAt(0);
+    double numberToCriteria = Double.parseDouble(discountDto.getCondition().substring(1));
+
+    switch (criteria) {
+      case '>':
+        if (subtotal > numberToCriteria) {
+          orderDto.setDiscount(discountDto.getValue() / 100);
+        }
+        break;
+
     }
+
   }
 
-//to do
-  private Double calcUnitCost(ResponseProductDto dto){
-    return 1.0;
+  private List<OrderDetailDto> getOrderDetail(Map<String, ResponseProductDto> mapDto, Map<String, String> orderInput) {
+    List<OrderDetailDto> orderDetailDtoList = new ArrayList<>();
+    mapDto.entrySet().stream().forEach(var -> {
+      if (Integer.parseInt(orderInput.get(var.getKey())) > 0) {
+        orderDetailDtoList.add(getOrderDetail(orderInput.get(var.getKey()), var.getValue()));
+      }
+    });
+
+    return orderDetailDtoList;
+  }
+
+
+  private OrderDetailDto getOrderDetail(String quantity, ResponseProductDto productDto) {
+    Integer quantityDet = Integer.parseInt(quantity);
+    OrderDetailDto orderDetailDto = new OrderDetailDto();
+    orderDetailDto.setAlias(productDto.getName());
+    orderDetailDto.setQuantity(quantityDet);
+    Double priceUnit = calcUnitCost(productDto);
+    orderDetailDto.setBaseUnitPrice(priceUnit);
+    orderDetailDto.setLineTotal(quantityDet * priceUnit);
+    return orderDetailDto;
+  }
+
+
+  private Double calcUnitCost(ResponseProductDto dto) {
+    Double markup = Double.parseDouble(dto.getMarkup());
+    Double promotion = Double.parseDouble(dto.getPromotion());
+    return Math.floor((dto.getUnitCost() * (markup / 100) * (promotion / 100)) * 1000) / 1000;
   }
 
   private Map<String, ResponseProductDto> getProducts() {
@@ -79,11 +121,11 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-  private Map<String, String> getRequest(String input) {
+  private Map<String, String> getQuantityByProduct(String input) {
 
     String messageIncorrectSintax = "incorrect syntax in field input, input may contains 5 fields in the same input "
         + "separated by space, it should be like this '5 10000 0 20000 0'";
-    if (input.length() > 9) {
+    if (input.length() < 9) {
       throw new RuntimeException(messageIncorrectSintax);
     } else {
       String[] data = input.split(" ");

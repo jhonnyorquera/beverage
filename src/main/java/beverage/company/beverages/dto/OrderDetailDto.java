@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDetailDto {
+  private String alias;
   private Integer quantity;
   private Double baseUnitPrice;
   private Double lineTotal;
