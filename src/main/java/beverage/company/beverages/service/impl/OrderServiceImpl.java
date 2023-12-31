@@ -11,6 +11,8 @@ import beverage.company.beverages.repository.OrderRepository;
 import beverage.company.beverages.service.CustomerService;
 import beverage.company.beverages.service.OrderService;
 import beverage.company.beverages.service.ProductService;
+import beverage.company.beverages.utils.Constants;
+import beverage.company.beverages.utils.Decimals;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,14 +28,14 @@ public class OrderServiceImpl implements OrderService {
 
   private ProductService productService;
 
-  private OrderRepository repository;
+
 
 
   @Override
   public OrderDto saverOrder(RequestOrderDto dto) {
 
     Map<String, String> orderInput = getQuantityByProduct(dto.getInput());
-    ResponseCustomerDto customer = customerService.getCustomerByAlias(orderInput.get("Customer"));
+    ResponseCustomerDto customer = customerService.getCustomerByAlias(orderInput.get(Constants.NAME_CUSTOMER));
     Map<String, ResponseProductDto> products = getProducts();
     List<OrderDetailDto> orderDetailDtos = getOrderDetail(products, orderInput);
     OrderDto orderDto = new OrderDto();
@@ -60,6 +62,10 @@ public class OrderServiceImpl implements OrderService {
     orderDto.setDiscount(subtotal*totalDiscount);
     if(orderDto.getDiscount()>0.0)
     orderDto.setTotal(orderDto.getSubtotal()-orderDto.getDiscount());
+
+    orderDto.setSubtotal(Decimals.round(orderDto.getSubtotal()));
+    orderDto.setDiscount(Decimals.round(orderDto.getDiscount()));
+    orderDto.setTotal(Decimals.round(orderDto.getTotal()));
 
 
   }
@@ -107,37 +113,34 @@ public class OrderServiceImpl implements OrderService {
   private Double calcUnitCost(ResponseProductDto dto) {
     Double markup = Double.parseDouble(dto.getMarkup());
     Double promotion = Double.parseDouble(dto.getPromotion());
-    return Math.floor((dto.getUnitCost() * (markup / 100) * (promotion / 100)) * 1000) / 1000;
+     return Decimals.round((dto.getUnitCost() * (markup / 100)) - (dto.getUnitCost()*(promotion / 100)));
   }
 
   private Map<String, ResponseProductDto> getProducts() {
     Map<String, ResponseProductDto> dtoMap = new HashMap<>();
-    dtoMap.put("ProductA", productService.getProductByName("A"));
-    dtoMap.put("ProductB", productService.getProductByName("B"));
-    dtoMap.put("ProductC", productService.getProductByName("C"));
-    dtoMap.put("ProductD", productService.getProductByName("D"));
+    dtoMap.put(Constants.PRODUCT_A, productService.getProductByName(Constants.NAME_A));
+    dtoMap.put(Constants.PRODUCT_B, productService.getProductByName(Constants.NAME_B));
+    dtoMap.put(Constants.PRODUCT_C, productService.getProductByName(Constants.NAME_C));
+    dtoMap.put(Constants.PRODUCT_D, productService.getProductByName(Constants.NAME_D));
     return dtoMap;
 
   }
 
 
   private Map<String, String> getQuantityByProduct(String input) {
-
-    String messageIncorrectSintax = "incorrect syntax in field input, input may contains 5 fields in the same input "
-        + "separated by space, it should be like this '5 10000 0 20000 0'";
     if (input.length() < 9) {
-      throw new RuntimeException(messageIncorrectSintax);
+      throw new RuntimeException(Constants.MESSAGE_INCORRECT_SINTAX);
     } else {
       String[] data = input.split(" ");
       if (data.length < 5) {
-        throw new RuntimeException(messageIncorrectSintax);
+        throw new RuntimeException(Constants.MESSAGE_INCORRECT_SINTAX);
       }
       Map<String, String> inputReady = new HashMap<>();
-      inputReady.put("Customer", data[0]);
-      inputReady.put("ProductA", data[1]);
-      inputReady.put("ProductB", data[2]);
-      inputReady.put("ProductC", data[3]);
-      inputReady.put("ProductD", data[4]);
+      inputReady.put(Constants.NAME_CUSTOMER, data[0]);
+      inputReady.put(Constants.PRODUCT_A, data[1]);
+      inputReady.put(Constants.PRODUCT_B, data[2]);
+      inputReady.put(Constants.PRODUCT_C, data[3]);
+      inputReady.put(Constants.PRODUCT_D, data[4]);
       return inputReady;
     }
   }
