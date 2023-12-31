@@ -110,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-  private Double calcUnitCost(ResponseProductDto dto) {
+  public Double calcUnitCost(ResponseProductDto dto) {
     Double markup = Double.parseDouble(dto.getMarkup());
     Double promotion = Double.parseDouble(dto.getPromotion());
      return Decimals.round((dto.getUnitCost() * (markup / 100)) - (dto.getUnitCost()*(promotion / 100)));
@@ -127,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-  private Map<String, String> getQuantityByProduct(String input) {
+  public Map<String, String> getQuantityByProduct(String input) {
     if (input.length() < 9) {
       throw new RuntimeException(Constants.MESSAGE_INCORRECT_SINTAX);
     } else {

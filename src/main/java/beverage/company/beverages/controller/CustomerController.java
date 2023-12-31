@@ -25,14 +25,14 @@ public class CustomerController {
   private CustomerService customerService;
 
   @PutMapping("/")
-  private ResponseEntity<ResponseCustomerDto> saveCustomer(@RequestBody RequestCustomerDto dto){
+  public ResponseEntity<ResponseCustomerDto> saveCustomer(@RequestBody RequestCustomerDto dto){
     return new ResponseEntity<>(customerService.insertCustomer(dto), HttpStatus.CREATED);
 
   }
 
 
   @GetMapping("/")
-  private ResponseEntity<ResponseCustomerDto> getCustomerByAlias(@RequestParam String alias){
+  public ResponseEntity<ResponseCustomerDto> getCustomerByAlias(@RequestParam String alias){
     return new ResponseEntity<>(customerService.getCustomerByAlias(alias), HttpStatus.OK);
 
   }
