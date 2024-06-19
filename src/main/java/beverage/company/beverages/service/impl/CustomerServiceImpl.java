@@ -7,6 +7,7 @@ import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.repository.CustomerRepository;
 import beverage.company.beverages.service.CustomerService;
 import lombok.AllArgsConstructor;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,12 @@ public class CustomerServiceImpl implements CustomerService {
     return  modelMapper.map(getCustomerJust(alias), ResponseCustomerDto.class);
   }
 
+  private Customer getCustomerJust(String alias){
+    return customerRepository.
+        findFirstByAliasAndStatus(alias, Boolean.TRUE)
+        .orElseThrow(()->new RuntimeException("Customer not exist"));
+  }
+
   @Override
   public String updateCustomer(RequestCustomerDto requestCustomerDto) {
     Customer customer= getCustomerJust(requestCustomerDto.getAlias());
@@ -48,12 +55,10 @@ public class CustomerServiceImpl implements CustomerService {
     return "Customer deleted";
   }
 
-  private Customer getCustomerJust(String alias){
 
-    return customerRepository.
-        findFirstByAliasAndStatus(alias, Boolean.TRUE)
-        .orElseThrow(()->new RuntimeException("Customer not exist"));
-  }
+
+
+
 
 
 }
