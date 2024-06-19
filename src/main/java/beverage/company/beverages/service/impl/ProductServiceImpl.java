@@ -19,6 +19,13 @@ public class ProductServiceImpl  implements ProductService {
   private ProductRepository repository;
 
   @Override
+  public ResponseProductDto getProductByName(String name) {
+    ModelMapper modelMapper = new ModelMapper();
+    return modelMapper.map(getProductJust(name), ResponseProductDto.class);
+  }
+
+
+  @Override
   public ResponseProductDto insertProduct(RequestProductDto dto) {
 
     ModelMapper modelMapper = new ModelMapper();
@@ -28,18 +35,11 @@ public class ProductServiceImpl  implements ProductService {
 
   }
 
-  @Override
-  public ResponseProductDto getProductByName(String name) {
-    ModelMapper modelMapper = new ModelMapper();
-    return modelMapper.map(getProductJust(name), ResponseProductDto.class);
-  }
 
   @Override
   public String updateProduct(RequestProductDto dto) {
     Product product = getProductJust(dto.getName());
-    product.setPromotion(dto.getPromotion());
-    product.setMarkup(dto.getMarkup());
-    product.setUnitCost(dto.getUnitCost());
+    product.updateFromDto(dto);
     repository.save(product);
     return "product updated!";
   }
@@ -53,11 +53,10 @@ public class ProductServiceImpl  implements ProductService {
   }
 
   private Product getProductJust(String name){
-    List<Product> customer=repository.findByNameAndStatus(name, Boolean.TRUE);
-    if (customer.size() < 1) {
-      throw new RuntimeException("product: "+name+", not exist");
-    }
-    return customer.get(0);
+    System.out.println("this is the name: "+name);
+    return repository.findFirstByNameAndStatus(name, Boolean.TRUE)
+        .orElseThrow(() -> new RuntimeException("Product "+ name+" not Exist"));
+
   }
 
 }

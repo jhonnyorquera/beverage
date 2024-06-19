@@ -6,7 +6,6 @@ import beverage.company.beverages.dto.RequestCustomerDto;
 import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.repository.CustomerRepository;
 import beverage.company.beverages.service.CustomerService;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -50,11 +49,10 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   private Customer getCustomerJust(String alias){
-    List<Customer> customer=customerRepository.findByaliasAndStatus(alias, Boolean.TRUE);
-    if (customer.size() < 1) {
-      throw new RuntimeException("Customer not exist");
-    }
-    return customer.get(0);
+
+    return customerRepository.
+        findFirstByAliasAndStatus(alias, Boolean.TRUE)
+        .orElseThrow(()->new RuntimeException("Customer not exist"));
   }
 
 

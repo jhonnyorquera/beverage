@@ -3,7 +3,6 @@ package beverage.company.beverages.controller;
 import beverage.company.beverages.dto.RequestCustomerDto;
 import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.service.CustomerService;
-import java.util.ArrayList;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

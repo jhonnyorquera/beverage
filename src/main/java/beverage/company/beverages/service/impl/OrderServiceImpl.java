@@ -7,7 +7,6 @@ import beverage.company.beverages.dto.OrderDto;
 import beverage.company.beverages.dto.RequestOrderDto;
 import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.dto.ResponseProductDto;
-import beverage.company.beverages.repository.OrderRepository;
 import beverage.company.beverages.service.CustomerService;
 import beverage.company.beverages.service.OrderService;
 import beverage.company.beverages.service.ProductService;
@@ -37,36 +36,31 @@ public class OrderServiceImpl implements OrderService {
     Map<String, String> orderInput = getQuantityByProduct(dto.getInput());
     ResponseCustomerDto customer = customerService.getCustomerByAlias(orderInput.get(Constants.NAME_CUSTOMER));
     Map<String, ResponseProductDto> products = getProducts();
-    List<OrderDetailDto> orderDetailDtos = getOrderDetail(products, orderInput);
-    OrderDto orderDto = new OrderDto();
-    orderDto.setCustomer(customer);
-    orderDto.setDetails(orderDetailDtos);
+    OrderDto orderDto = new OrderDto().builder()
+        .customer(customer)
+        .details(getOrderDetail(products, orderInput))
+        .discount(0.0)
+        .build();
     getDiscountsOverall(orderDto, customer);
     return orderDto;
   }
 
 
   private void getDiscountsOverall(OrderDto orderDto, ResponseCustomerDto customerDto) {
-    double subtotal = orderDto.getDetails().stream().map(x -> x.getLineTotal()).reduce(0.0, Double::sum);
+    double subtotal= orderDto.getDetails().stream().mapToDouble(x -> x.getLineTotal()).sum();
+
+
     orderDto.setSubtotal(subtotal);
     double basicDiscount = (customerDto.getBasicDiscountPercent()) / 100;
-    orderDto.setDiscount(0.0);
-
 
     customerDto.getDiscountList().stream().forEach(x-> {
       getDiscountByCriteriaField(x, subtotal, orderDto);
 
     });
 
-    Double totalDiscount= basicDiscount+orderDto.getDiscount();
-    orderDto.setDiscount(subtotal*totalDiscount);
-    if(orderDto.getDiscount()>0.0)
-    orderDto.setTotal(orderDto.getSubtotal()-orderDto.getDiscount());
-
-    orderDto.setSubtotal(Decimals.round(orderDto.getSubtotal()));
-    orderDto.setDiscount(Decimals.round(orderDto.getDiscount()));
-    orderDto.setTotal(Decimals.round(orderDto.getTotal()));
-
+    orderDto.setDiscount(subtotal*(basicDiscount+orderDto.getDiscount()));
+    orderDto.applyDiscount();
+    orderDto.applyRound();
 
   }
 
@@ -100,13 +94,13 @@ public class OrderServiceImpl implements OrderService {
 
   private OrderDetailDto getOrderDetail(String quantity, ResponseProductDto productDto) {
     Integer quantityDet = Integer.parseInt(quantity);
-    OrderDetailDto orderDetailDto = new OrderDetailDto();
-    orderDetailDto.setAlias(productDto.getName());
-    orderDetailDto.setQuantity(quantityDet);
     Double priceUnit = calcUnitCost(productDto);
-    orderDetailDto.setBaseUnitPrice(priceUnit);
-    orderDetailDto.setLineTotal(quantityDet * priceUnit);
-    return orderDetailDto;
+    return new OrderDetailDto().builder()
+        .alias(productDto.getName())
+        .quantity(quantityDet)
+        .baseUnitPrice(priceUnit)
+        .lineTotal(quantityDet * priceUnit)
+        .build();
   }
 
 

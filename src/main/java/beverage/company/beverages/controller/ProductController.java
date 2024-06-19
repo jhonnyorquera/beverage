@@ -1,9 +1,7 @@
 package beverage.company.beverages.controller;
 
 
-import beverage.company.beverages.dto.RequestCustomerDto;
 import beverage.company.beverages.dto.RequestProductDto;
-import beverage.company.beverages.dto.ResponseCustomerDto;
 import beverage.company.beverages.dto.ResponseProductDto;
 import beverage.company.beverages.service.ProductService;
 import lombok.AllArgsConstructor;
@@ -23,27 +21,31 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class ProductController {
 
-  private ProductService service;
+  private ProductService productService;
 
-  @PutMapping("/")
-  private ResponseEntity<ResponseProductDto> saveProduct(@RequestBody RequestProductDto dto){
-    return new ResponseEntity<>(service.insertProduct(dto), HttpStatus.CREATED);
-  }
 
   @GetMapping("/")
   private ResponseEntity<ResponseProductDto> getCustomerByAlias(@RequestParam String name){
-    return new ResponseEntity<>(service.getProductByName(name), HttpStatus.OK);
+    return new ResponseEntity<>(productService.getProductByName(name), HttpStatus.OK);
 
   }
 
+
+  @PutMapping("/")
+  private ResponseEntity<ResponseProductDto> saveProduct(@RequestBody RequestProductDto dto){
+    return new ResponseEntity<>(productService.insertProduct(dto), HttpStatus.CREATED);
+  }
+
+
+
   @PostMapping("/")
   private ResponseEntity<String> updateCustomer(@RequestBody RequestProductDto dto) {
-    return new ResponseEntity<>(service.updateProduct(dto), HttpStatus.OK);
+    return new ResponseEntity<>(productService.updateProduct(dto), HttpStatus.OK);
   }
 
   @DeleteMapping("/")
   private ResponseEntity<String> deleteCustomer(@RequestParam String name) {
-    return new ResponseEntity<>(service.deleteProduct(name), HttpStatus.OK);
+    return new ResponseEntity<>(productService.deleteProduct(name), HttpStatus.OK);
   }
 
 
